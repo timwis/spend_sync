@@ -24,6 +24,7 @@ defmodule SpendSync.DataCase do
       import Ecto.Changeset
       import Ecto.Query
       import SpendSync.DataCase
+      import SpendSync.Factory
     end
   end
 

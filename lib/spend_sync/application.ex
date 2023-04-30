@@ -16,6 +16,8 @@ defmodule SpendSync.Application do
       {Phoenix.PubSub, name: SpendSync.PubSub},
       # Start Finch
       {Finch, name: SpendSync.Finch},
+      # Encryption vault
+      SpendSync.Encrypted.Vault,
       # Start the Endpoint (http/https)
       SpendSyncWeb.Endpoint
       # Start a worker by calling: SpendSync.Worker.start_link(arg)

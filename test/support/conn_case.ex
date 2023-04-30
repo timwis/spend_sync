@@ -28,6 +28,7 @@ defmodule SpendSyncWeb.ConnCase do
       import Plug.Conn
       import Phoenix.ConnTest
       import SpendSyncWeb.ConnCase
+      import SpendSync.Factory
     end
   end
 
