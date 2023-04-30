@@ -20,6 +20,8 @@ config :spend_sync, SpendSyncWeb.Endpoint,
   pubsub_server: SpendSync.PubSub,
   live_view: [signing_salt: "ehyxIOws"]
 
+config :tesla, adapter: Tesla.Adapter.Hackney
+
 # Configures the mailer
 #
 # By default it uses the "Local" adapter which stores the emails
@@ -62,3 +64,8 @@ config :phoenix, :json_library, Jason
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
+
+config :spend_sync, env: config_env()
+
+config :money,
+  default_currency: :GBP

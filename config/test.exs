@@ -31,3 +31,10 @@ config :logger, level: :warning
 
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime
+
+config :tesla, adapter: Tesla.Mock
+
+config :spend_sync, TrueLayer,
+  client_id: "test_client_id",
+  client_secret: "test_client_secret",
+  redirect_uri: "http://localhost:4000"
