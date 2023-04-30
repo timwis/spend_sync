@@ -1,0 +1,26 @@
+<.header>
+  Listing Bank connections
+  <:actions>
+    <.link href={~p"/bank_connections/new"}>
+      <.button>New Bank connection</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table id="bank_connections" rows={@bank_connections} row_click={&JS.navigate(~p"/bank_connections/#{&1}")}>
+  <:col :let={bank_connection} label="Access token"><%= bank_connection.access_token %></:col>
+  <:col :let={bank_connection} label="Expires at"><%= bank_connection.expires_at %></:col>
+  <:col :let={bank_connection} label="Provider"><%= bank_connection.provider %></:col>
+  <:col :let={bank_connection} label="Refresh token"><%= bank_connection.refresh_token %></:col>
+  <:action :let={bank_connection}>
+    <div class="sr-only">
+      <.link navigate={~p"/bank_connections/#{bank_connection}"}>Show</.link>
+    </div>
+    <.link navigate={~p"/bank_connections/#{bank_connection}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={bank_connection}>
+    <.link href={~p"/bank_connections/#{bank_connection}"} method="delete" data-confirm="Are you sure?">
+      Delete
+    </.link>
+  </:action>
+</.table>

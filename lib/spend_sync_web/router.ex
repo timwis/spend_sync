@@ -18,6 +18,7 @@ defmodule SpendSyncWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    resources "/bank_connections", BankConnectionController
   end
 
   # Other scopes may use custom stacks.
