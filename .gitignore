@@ -35,3 +35,5 @@ spend_sync-*.tar
 npm-debug.log
 /assets/node_modules/
 
+# Ignore public-private key pair for TrueLayer.
+/priv/keys

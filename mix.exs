@@ -56,6 +56,7 @@ defmodule SpendSync.MixProject do
       {:hackney, "~> 1.17"},
       {:money, "~> 1.12"},
       {:mox, "~> 1.0", only: :test},
+      {:jose, "~> 1.11"}
     ]
   end
 
