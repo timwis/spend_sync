@@ -72,7 +72,7 @@ defmodule TrueLayer.RequestSigning do
     #{method} #{path}
     #{header_pairs}
     #{request.body}
-    """
+    """ |> String.trim()
   end
 
   defp get_header(%Request{headers: headers}, key) do
