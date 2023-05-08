@@ -6,7 +6,6 @@ defmodule SpendSync.Sync do
   require Logger
   import Ecto.Query, warn: false
 
-  alias SpendSync.Repo
   alias SpendSync.Plans
   alias SpendSync.Plans.Plan
   alias SpendSync.Plans.BankConnection
@@ -24,11 +23,11 @@ defmodule SpendSync.Sync do
          positive_sum <- Money.abs(sum),
          {:ok, sum_transferred} <- transfer_funds(positive_sum, source_account, destination_account)
     do
-      {:ok, _plan} = update_plan(plan, %{last_synced_at: DateTime.utc_now()})
+      {:ok, _plan} = Plans.update_plan(plan, %{last_synced_at: DateTime.utc_now()})
       {:ok, sum_transferred}
     else
       {:error, :non_negative} ->
-        {:ok, _plan} = update_plan(plan, %{last_synced_at: DateTime.utc_now()})
+        {:ok, _plan} = Plans.update_plan(plan, %{last_synced_at: DateTime.utc_now()})
         {:noop, :non_negative}
     end
   end
@@ -84,15 +83,5 @@ defmodule SpendSync.Sync do
     #   end
 
     # Monzo.deposit_into_pot!(amount, bank_connection.access_token, source_account.external_account_id, destination_account.external_account_id)
-  end
-
-  alias SpendSync.Sync.BankConnection
-
-
-
-  def update_plan(%Plan{} = plan, attrs \\ %{}) do
-    plan
-    |> Plan.changeset(attrs)
-    |> Repo.update()
   end
 end

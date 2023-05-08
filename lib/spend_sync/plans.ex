@@ -32,6 +32,12 @@ defmodule SpendSync.Plans do
     Repo.all(query)
   end
 
+  def update_plan(%Plan{} = plan, attrs \\ %{}) do
+    plan
+    |> Plan.changeset(attrs)
+    |> Repo.update()
+  end
+
   @doc """
   Returns the list of bank_connections.
 
