@@ -5,6 +5,7 @@ defmodule SpendSync.Factory do
   alias SpendSync.Plans.{
     BankAccount,
     BankConnection,
+    Mandate,
     Plan
   }
   alias TrueLayer.Transaction
@@ -35,14 +36,20 @@ defmodule SpendSync.Factory do
     }
   end
 
+  def mandate_factory do
+    %Mandate{
+      external_id: UUID.uuid4(),
+      user: build(:user)
+    }
+  end
+
   def plan_factory do
     one_day_ago = DateTime.add(DateTime.utc_now(), -1, :day)
     %Plan{
       user: build(:user),
       last_synced_at: one_day_ago,
       monitor_account: build(:bank_account),
-      source_account: build(:bank_account),
-      destination_account: build(:bank_account),
+      mandate: build(:mandate)
     }
   end
 

@@ -8,6 +8,7 @@ defmodule SpendSync.Plans do
   alias SpendSync.Repo
   alias SpendSync.Plans.Plan
   alias SpendSync.Plans.BankConnection
+  alias SpendSync.Plans.Mandate
   alias SpendSync.UserAccounts.User
 
   @doc """
@@ -21,13 +22,12 @@ defmodule SpendSync.Plans do
   """
   def list_plans(since) do
     query =
-      from j in Plan,
-        join: m in assoc(j, :monitor_account),
-        join: s in assoc(j, :source_account),
-        join: d in assoc(j, :destination_account),
-        where: j.last_synced_at <= ^since,
-        or_where: is_nil(j.last_synced_at),
-        preload: [monitor_account: :bank_connection, source_account: :bank_connection, destination_account: :bank_connection]
+      from plan in Plan,
+        join: monitor in assoc(plan, :monitor_account),
+        join: mandate in assoc(plan, :mandate),
+        where: plan.last_synced_at <= ^since,
+        or_where: is_nil(plan.last_synced_at),
+        preload: [:mandate, monitor_account: :bank_connection]
 
     Repo.all(query)
   end
@@ -136,5 +136,39 @@ defmodule SpendSync.Plans do
     bank_connection
     # |> Repo.preload(:user)
     |> BankConnection.changeset(attrs)
+  end
+
+  @doc """
+  Creates a mandate.
+
+  ## Examples
+
+      iex> create_mandate(user, %{field: value})
+      {:ok, %Mandate{}}
+
+      iex> create_mandate(user, %{field: bad_value})
+      {:error, ...}
+
+  """
+  def create_mandate(%User{} = user, attrs \\ %{}) do
+    %Mandate{}
+    |> change_mandate(attrs)
+    |> Ecto.Changeset.put_assoc(:user, user)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Returns a data structure for tracking mandate changes.
+
+  ## Examples
+
+      iex> change_mandate(mandate)
+      %Todo{...}
+
+  """
+  def change_mandate(%Mandate{} = mandate, attrs \\ %{}) do
+    mandate
+    # |> Repo.preload(:user)
+    |> Mandate.changeset(attrs)
   end
 end

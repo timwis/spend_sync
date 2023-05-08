@@ -13,15 +13,14 @@ defmodule SpendSync.Sync do
 
   def perform_sync(%Plan{
         monitor_account: monitor_account,
-        source_account: source_account,
-        destination_account: destination_account,
+        mandate: mandate,
         last_synced_at: last_synced_at
       } = plan) do
     with {:ok, transactions} <- get_transactions(monitor_account, last_synced_at),
          sum <- sum_transactions(transactions),
          {:ok, _sum} <- should_transfer?(sum),
          positive_sum <- Money.abs(sum),
-         {:ok, sum_transferred} <- transfer_funds(positive_sum, source_account, destination_account)
+         {:ok, sum_transferred} <- transfer_funds(positive_sum, mandate)
     do
       {:ok, _plan} = Plans.update_plan(plan, %{last_synced_at: DateTime.utc_now()})
       {:ok, sum_transferred}
@@ -73,7 +72,7 @@ defmodule SpendSync.Sync do
     Enum.reduce(transactions, Money.new(0), fn txn, acc -> Money.add(acc, txn.amount) end)
   end
 
-  def transfer_funds(amount, _source_account, _destination_account) do
+  def transfer_funds(amount, _mandate) do
     {:ok, amount}
     # bank_connection =
     #   if AccessToken.expired?(source_account.bank_connection) do
