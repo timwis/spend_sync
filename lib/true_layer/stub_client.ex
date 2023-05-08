@@ -20,4 +20,8 @@ defmodule TrueLayer.StubClient do
     ]
     {:ok, transactions}
   end
+
+  def create_payment_on_mandate(_mandate_id, _amount) do
+    {:ok, %{"id" => UUID.uuid4()}}
+  end
 end

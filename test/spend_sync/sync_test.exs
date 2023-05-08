@@ -13,8 +13,14 @@ defmodule SpendSync.SyncTest do
   # - [ ] limits transaction query to last_synced_at
   # - [x] does not transfer when spend is not negative
   # - [x] transfers absolute value of spend
-  # - [ ] renews source/dest tokens when expired
+  # - [ ] renews client credentials token when expired
   # - [ ] updates last_synced_at if :ok or :noop
+  # - [ ] creates transfer log record
+
+  setup do
+    Mox.stub_with(MockTrueLayer, TrueLayer.StubClient)
+    :ok
+  end
 
   describe "perform_sync/1" do
     test "renews monitor_account token when expired" do
@@ -23,8 +29,9 @@ defmodule SpendSync.SyncTest do
       monitor_account = insert(:bank_account, bank_connection: monitor_connection)
       plan = insert(:plan, monitor_account: monitor_account)
 
-      expect(MockTrueLayer, :renew_token, fn token -> StubClient.renew_token(token) end)
-      expect(MockTrueLayer, :get_card_transactions, fn a, b, c -> StubClient.get_card_transactions(a, b, c) end)
+      MockTrueLayer
+      |> expect(:renew_token, fn token -> StubClient.renew_token(token) end)
+
       Sync.perform_sync(plan)
       verify!()
     end
@@ -32,30 +39,37 @@ defmodule SpendSync.SyncTest do
     @tag :skip # TODO
     test "does not renew monitor_account token when not expired" do
       plan = insert(:plan)
-      expect(MockTrueLayer, :renew_token, 0, fn _ -> {:noop} end)
-      expect(MockTrueLayer, :get_card_transactions, fn a, b, c -> StubClient.get_card_transactions(a, b, c) end)
+
+      MockTrueLayer
+      |> expect(:renew_token, 0, fn _ -> {:noop} end)
+
       Sync.perform_sync(plan)
       verify!()
     end
 
-    @tag :skip # TODO
     test "does not transfer when spend is not negative" do
       plan = insert(:plan)
       transactions = [Transaction.new(%{"amount" => 100.0, "currency" => "GBP"})]
-      expect(MockTrueLayer, :get_card_transactions, fn _bc, _acc, _since -> transactions end)
-      expect(MockTrueLayer, :transfer_funds, 0, fn _ -> {:noop} end)
+
+      MockTrueLayer
+      |> expect(:get_card_transactions, fn _bc, _acc, _since -> {:ok, transactions} end)
+      |> expect(:create_payment_on_mandate, 0, fn _, _ -> {:noop} end)
+
       Sync.perform_sync(plan)
       verify!()
     end
 
-    @tag :skip # TODO
     test "transfers absolute value of spend" do
       plan = insert(:plan)
       transactions = [Transaction.new(%{"amount" => -100.0, "currency" => "GBP"})]
-      expect(MockTrueLayer, :get_card_transactions, fn _bc, _acc, _since -> transactions end)
-      expect(MockTrueLayer, :transfer_funds, fn amount ->
-        assert Money.equals?(amount, Money.parse(100, :GBP))
+
+      MockTrueLayer
+      |> expect(:get_card_transactions, fn _bc, _acc, _since -> {:ok, transactions} end)
+      |> expect(:create_payment_on_mandate, fn mandate_id, amount ->
+        assert Money.equals?(amount, Money.parse!(100, :GBP))
+        StubClient.create_payment_on_mandate(mandate_id, amount)
       end)
+
       Sync.perform_sync(plan)
       verify!()
     end

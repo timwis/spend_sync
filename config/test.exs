@@ -27,7 +27,7 @@ config :spend_sync, SpendSync.Mailer, adapter: Swoosh.Adapters.Test
 config :swoosh, :api_client, false
 
 # Print only warnings and errors during test
-config :logger, level: :warning
+config :logger, level: :debug # :warning
 
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime
@@ -37,4 +37,7 @@ config :tesla, adapter: Tesla.Mock
 config :spend_sync, TrueLayer,
   client_id: "test_client_id",
   client_secret: "test_client_secret",
-  redirect_uri: "http://localhost:4000"
+  redirect_uri: "http://localhost:4000",
+  key_id: "test_key_id",
+  private_key: "test/support/test_keys/ec512-private.pem",
+  public_key: "test/support/test_keys/ec512-public.pem"

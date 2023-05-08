@@ -9,7 +9,7 @@ defmodule TrueLayer.RequestSigningTest do
   test "adds Tl-Signature header" do
     options = [key_id: "test_key", private_key: "test/support/test_keys/ec512-private.pem"]
     request = %Env{
-      method: "POST",
+      method: :post,
       url: "https://example.com/mandates",
       body: Jason.encode!(%{"foo" => "bar"}),
       headers: [{"Idempotency-Key", "123"}]
@@ -27,7 +27,7 @@ defmodule TrueLayer.RequestSigningTest do
       public_key: "test/support/test_keys/ec512-public.pem"
     ]
     request = %Request{
-      method: "POST",
+      method: :post,
       path: "/mandates",
       body: Jason.encode!(%{"foo" => "bar"}),
       headers: [{"Idempotency-Key", "123"}]

@@ -11,7 +11,7 @@ defmodule TrueLayer.RequestSigning.Middleware do
       |> Map.get(:path)
 
     request = %Request{
-      method: env.method,
+      method: Atom.to_string(env.method),
       path: path,
       body: env.body,
       headers: env.headers

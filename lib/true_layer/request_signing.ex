@@ -1,11 +1,11 @@
 defmodule TrueLayer.RequestSigning do
   @alg "ES512"
   @tl_version "2"
-  @config Application.compile_env(:spend_sync, :true_layer, [])
+  @config Application.compile_env(:spend_sync, TrueLayer, [])
 
   defmodule Request do
-    defstruct [:method, :path, :body, headers: []]
     @enforce_keys [:method, :path, :headers, :body]
+    defstruct [:method, :path, :body, headers: []]
   end
 
   def sign(%Request{} = request, opts \\ []) do

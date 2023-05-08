@@ -72,15 +72,8 @@ defmodule SpendSync.Sync do
     Enum.reduce(transactions, Money.new(0), fn txn, acc -> Money.add(acc, txn.amount) end)
   end
 
-  def transfer_funds(amount, _mandate) do
+  def transfer_funds(amount, mandate) do
+    {:ok, %{id: _payment_id}} = TrueLayer.create_payment_on_mandate(mandate.external_id, amount)
     {:ok, amount}
-    # bank_connection =
-    #   if AccessToken.expired?(source_account.bank_connection) do
-    #     renew_connection!(source_account.bank_connection)
-    #   else
-    #     source_account.bank_connection
-    #   end
-
-    # Monzo.deposit_into_pot!(amount, bank_connection.access_token, source_account.external_account_id, destination_account.external_account_id)
   end
 end
