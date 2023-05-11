@@ -1,6 +1,7 @@
 defmodule SpendSync.Factory do
   use ExMachina.Ecto, repo: SpendSync.Repo
 
+  alias SpendSync.Sync.TransferLog
   alias SpendSync.UserAccounts.User
   alias SpendSync.Plans.{
     BankAccount,
@@ -56,5 +57,14 @@ defmodule SpendSync.Factory do
   def transaction_factory do
     amount = :rand.uniform(2000) * 100.0
     Transaction.new(%{"amount" => amount, "currency" => "GBP"})
+  end
+
+  def transfer_log_factory do
+    %TransferLog{
+      plan: build(:plan),
+      amount: Money.new(4300),
+      external_id: UUID.uuid4(),
+      status: "payment_authorized"
+    }
   end
 end
