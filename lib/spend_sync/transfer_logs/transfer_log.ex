@@ -1,4 +1,4 @@
-defmodule SpendSync.Sync.TransferLog do
+defmodule SpendSync.TransferLogs.TransferLog do
   use Ecto.Schema
   import Ecto.Changeset
 

@@ -1,8 +1,8 @@
 defmodule SpendSync.Factory do
   use ExMachina.Ecto, repo: SpendSync.Repo
 
-  alias SpendSync.Sync.TransferLog
   alias SpendSync.UserAccounts.User
+  alias SpendSync.TransferLogs.TransferLog
 
   alias SpendSync.Plans.{
     BankAccount,
