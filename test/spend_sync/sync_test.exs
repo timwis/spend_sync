@@ -4,21 +4,14 @@ defmodule SpendSync.SyncTest do
   import Mox
 
   alias SpendSync.Sync
+  alias SpendSync.Plans
   alias SpendSync.TransferLogs
   alias TrueLayer.StubClient
   alias TrueLayer.Transaction
 
   # TODO
-  # - [x] renews monitor_account token when expired
-  # - [x] does not renew monitor_account token when not expired
-  # - [ ] limits transaction query to last_synced_at
-  # - [x] does not transfer when spend is not negative
-  # - [x] transfers absolute value of spend
   # - [ ] renews client credentials token when expired
-  # - [ ] updates last_synced_at if :ok or :noop
-  # - [x] creates transfer log record
   # - [ ] supports multiple currencies in transactions
-  # - [x] transfers specified percentage from plan
 
   setup do
     Mox.stub_with(MockTrueLayer, TrueLayer.StubClient)
@@ -51,6 +44,20 @@ defmodule SpendSync.SyncTest do
       verify!()
     end
 
+    test "passes last_synced_at to transaction query" do
+      three_days_ago = DateTime.add(DateTime.utc_now(), -3, :day)
+      plan = insert(:plan, last_synced_at: three_days_ago)
+
+      MockTrueLayer
+      |> expect(:get_card_transactions, fn bank_connection, account_id, since ->
+        assert since == DateTime.truncate(three_days_ago, :second)
+        StubClient.get_card_transactions(bank_connection, account_id, since)
+      end)
+
+      Sync.perform_sync(plan)
+      verify!()
+    end
+
     test "does not transfer when spend is not negative" do
       plan = insert(:plan)
       transactions = [Transaction.new(%{"amount" => 100.0, "currency" => "GBP"})]
@@ -58,6 +65,26 @@ defmodule SpendSync.SyncTest do
       MockTrueLayer
       |> expect(:get_card_transactions, fn _bc, _acc, _since -> {:ok, transactions} end)
       |> expect(:create_payment_on_mandate, 0, fn _, _ -> {:noop} end)
+
+      Sync.perform_sync(plan)
+      verify!()
+    end
+
+    test "transfers sum of transactions" do
+      plan = insert(:plan)
+
+      transactions = [
+        Transaction.new(%{"amount" => -100.0, "currency" => "GBP"}),
+        Transaction.new(%{"amount" => -500.0, "currency" => "GBP"}),
+        Transaction.new(%{"amount" => 50.0, "currency" => "GBP"})
+      ]
+
+      MockTrueLayer
+      |> expect(:get_card_transactions, fn _bc, _acc, _since -> {:ok, transactions} end)
+      |> expect(:create_payment_on_mandate, fn mandate_id, amount ->
+        assert Money.equals?(amount, Money.parse!(550, :GBP))
+        StubClient.create_payment_on_mandate(mandate_id, amount)
+      end)
 
       Sync.perform_sync(plan)
       verify!()
@@ -104,6 +131,30 @@ defmodule SpendSync.SyncTest do
       end)
 
       Sync.perform_sync(plan)
+    end
+
+    test "updates last_synced_at if :ok" do
+      one_day_ago = DateTime.add(DateTime.utc_now(), -1, :day)
+      plan = insert(:plan, last_synced_at: one_day_ago)
+
+      Sync.perform_sync(plan)
+      plan = Plans.get_plan!(plan.id)
+
+      assert DateTime.to_date(plan.last_synced_at) == Date.utc_today()
+    end
+
+    test "updates last_synced_at if :non_negative" do
+      one_day_ago = DateTime.add(DateTime.utc_now(), -1, :day)
+      plan = insert(:plan, last_synced_at: one_day_ago)
+      transactions = [Transaction.new(%{"amount" => 100.0, "currency" => "GBP"})]
+
+      MockTrueLayer
+      |> expect(:get_card_transactions, fn _bc, _acc, _since -> {:ok, transactions} end)
+
+      Sync.perform_sync(plan)
+      plan = Plans.get_plan!(plan.id)
+
+      assert DateTime.to_date(plan.last_synced_at) == Date.utc_today()
     end
   end
 end

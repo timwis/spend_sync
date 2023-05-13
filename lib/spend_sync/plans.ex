@@ -32,6 +32,22 @@ defmodule SpendSync.Plans do
     Repo.all(query)
   end
 
+  @doc """
+  Gets a single plan.
+
+  Raises if the plan does not exist.
+
+  ## Examples
+
+      iex> get_plan!(123)
+      %Plan{}
+
+  """
+  def get_plan!(id) do
+    Plan
+    |> Repo.get!(id)
+  end
+
   def update_plan(%Plan{} = plan, attrs \\ %{}) do
     plan
     |> Plan.changeset(attrs)
