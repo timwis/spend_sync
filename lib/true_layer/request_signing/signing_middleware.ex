@@ -1,4 +1,4 @@
-defmodule TrueLayer.RequestSigning.Middleware do
+defmodule TrueLayer.RequestSigning.SigningMiddleware do
   alias TrueLayer.RequestSigning
   alias TrueLayer.RequestSigning.Request
 
@@ -11,7 +11,7 @@ defmodule TrueLayer.RequestSigning.Middleware do
       |> Map.get(:path)
 
     request = %Request{
-      method: Atom.to_string(env.method),
+      method: env.method,
       path: path,
       body: env.body,
       headers: env.headers
@@ -20,7 +20,7 @@ defmodule TrueLayer.RequestSigning.Middleware do
     {:ok, tl_signature} = RequestSigning.sign(request, options)
 
     env
-    |> Tesla.put_header("Tl-Signature", tl_signature)
+    |> Tesla.put_header("tl-signature", tl_signature)
     |> Tesla.run(next)
   end
 end

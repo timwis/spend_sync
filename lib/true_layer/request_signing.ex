@@ -29,20 +29,29 @@ defmodule TrueLayer.RequestSigning do
   def verify(%Request{} = request, opts \\ []) do
     config = Keyword.merge(@config, opts)
     public_key = Keyword.fetch!(config, :public_key)
+    jwk = JOSE.JWK.from_pem_file(public_key)
 
     jws_payload_b64 =
       request
-      |> delete_header("Tl-Signature")
+      |> delete_header("tl-signature")
       |> build_jws_payload()
       |> Base.encode64(padding: false)
 
-    tl_signature = get_header(request, "Tl-Signature")
-    [jws_header_b64, jws_signature] = String.split(tl_signature, "..", parts: 2)
+    with {:ok, tl_signature} <- get_header(request, "tl-signature"),
+         [jws_header_b64, jws_signature] <- String.split(tl_signature, "..", parts: 2),
+         full_jws <- Enum.join([jws_header_b64, jws_payload_b64, jws_signature], "."),
+         {true, _, _} <- JOSE.JWS.verify_strict(jwk, [@alg], full_jws) do
+      :ok
+    else
+      {:error, :missing_header} ->
+        {:error, :missing_signature}
 
-    full_jws = Enum.join([jws_header_b64, jws_payload_b64, jws_signature], ".")
+      {false, _, _} ->
+        {:error, :invalid_signature}
 
-    JOSE.JWK.from_pem_file(public_key)
-    |> JOSE.JWS.verify_strict([@alg], full_jws)
+      [_tl_sig_without_separator] ->
+        {:error, :invalid_signature}
+    end
   end
 
   defp build_jws_header(%Request{} = request, key_id) do
@@ -60,8 +69,8 @@ defmodule TrueLayer.RequestSigning do
   end
 
   defp build_jws_payload(%Request{} = request) do
-    method = String.upcase(request.method)
-    path = String.replace_trailing(request.path, "/", "")
+    method = prepare_method(request.method)
+    path = prepare_path(request.path)
 
     header_pairs =
       request.headers
@@ -76,10 +85,20 @@ defmodule TrueLayer.RequestSigning do
     |> String.trim()
   end
 
+  defp prepare_method(method) do
+    method
+    |> to_string()
+    |> String.upcase()
+  end
+
+  defp prepare_path(path) do
+    String.replace_trailing(path, "/", "")
+  end
+
   defp get_header(%Request{headers: headers}, key) do
     case List.keyfind(headers, key, 0) do
-      {_, value} -> value
-      _ -> nil
+      {_, value} -> {:ok, value}
+      _ -> {:error, :missing_header}
     end
   end
 

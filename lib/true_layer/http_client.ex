@@ -6,6 +6,7 @@ defmodule TrueLayer.HttpClient do
   alias SpendSync.Plans.BankConnection
   alias TrueLayer.AccessToken
   alias TrueLayer.Transaction
+  alias TrueLayer.RequestSigning.SigningMiddleware
 
   # def client(subdomain \\ "api", access_token \\ nil) do
   def client(opts \\ []) do
@@ -17,7 +18,7 @@ defmodule TrueLayer.HttpClient do
       Tesla.Middleware.JSON
     ]
     |> append_if(test_env?, Tesla.Middleware.KeepRequest)
-    |> append_if(Keyword.has_key?(opts, :sign_request), TrueLayer.RequestSigning.Middleware)
+    |> append_if(Keyword.has_key?(opts, :sign_request), SigningMiddleware)
     |> Tesla.client()
   end
 
@@ -38,7 +39,7 @@ defmodule TrueLayer.HttpClient do
     idempotency_key = Keyword.get(opts, :idempotency_key)
 
     headers =
-      if idempotency_key, do: [{"Idempotency-Key", idempotency_key} | headers], else: headers
+      if idempotency_key, do: [{"idempotency-key", idempotency_key} | headers], else: headers
 
     headers
   end
