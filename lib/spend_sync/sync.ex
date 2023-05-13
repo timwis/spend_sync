@@ -19,10 +19,14 @@ defmodule SpendSync.Sync do
          :ok <- should_transfer?(sum),
          positive_sum <- Money.abs(sum),
          amount_to_transfer <- percent_of(positive_sum, plan.percentage),
-         {:ok, %{"id" => payment_id}} <- transfer_funds(amount_to_transfer, plan.mandate)
-    do
+         {:ok, %{"id" => payment_id}} <- transfer_funds(amount_to_transfer, plan.mandate) do
       {:ok, _plan} = Plans.update_plan(plan, %{last_synced_at: DateTime.utc_now()})
-      create_transfer_log(plan, %{external_id: payment_id, amount: positive_sum, status: "authorizing"})
+
+      create_transfer_log(plan, %{
+        external_id: payment_id,
+        amount: positive_sum,
+        status: "authorizing"
+      })
     else
       {:error, :non_negative} ->
         {:ok, _plan} = Plans.update_plan(plan, %{last_synced_at: DateTime.utc_now()})
@@ -43,9 +47,9 @@ defmodule SpendSync.Sync do
   end
 
   defp get_transactions(
-        %BankAccount{} = bank_account,
-        %DateTime{} = since
-      ) do
+         %BankAccount{} = bank_account,
+         %DateTime{} = since
+       ) do
     # {:ok, bank_connection} =
     #   if AccessToken.expired?(bank_account.bank_connection) do
     #     renew_connection(bank_account.bank_connection)
@@ -57,16 +61,20 @@ defmodule SpendSync.Sync do
 
     # TODO: Only renew if expired
     with {:ok, bank_connection} <- renew_connection(bank_account.bank_connection),
-         {:ok, transactions} <- TrueLayer.get_card_transactions(bank_connection, bank_account.external_account_id, since)
-    do
+         {:ok, transactions} <-
+           TrueLayer.get_card_transactions(
+             bank_connection,
+             bank_account.external_account_id,
+             since
+           ) do
       {:ok, transactions}
     end
   end
 
   defp renew_connection(%BankConnection{} = bank_connection) do
     with {:ok, renewed_token} <- TrueLayer.renew_token(bank_connection.refresh_token),
-         {:ok, renewed_connection} <- Plans.update_bank_connection(bank_connection, Map.from_struct(renewed_token))
-    do
+         {:ok, renewed_connection} <-
+           Plans.update_bank_connection(bank_connection, Map.from_struct(renewed_token)) do
       {:ok, renewed_connection}
     end
   end

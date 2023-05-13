@@ -20,7 +20,7 @@ defmodule SpendSyncWeb.BankConnectionHTML do
 
     user_opts =
       for user <- UserAccounts.list_users(),
-        do: [key: user.email, value: user.id, selected: user.id == selected_user_id]
+          do: [key: user.email, value: user.id, selected: user.id == selected_user_id]
 
     select(f, :user_id, user_opts)
   end

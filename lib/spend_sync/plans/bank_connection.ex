@@ -24,6 +24,7 @@ defmodule SpendSync.Plans.BankConnection do
     bank_connection
     |> cast(attrs, [:provider, :access_token, :expires_at, :refresh_token])
     |> validate_required([:provider, :access_token, :expires_at, :refresh_token])
+
     # |> assoc_constraint(:user)
   end
 

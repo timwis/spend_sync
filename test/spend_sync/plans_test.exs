@@ -17,7 +17,13 @@ defmodule SpendSync.PlansTest do
 
     test "update_plan/1 with invalid percentage returns error changeset" do
       plan = insert(:plan)
-      assert {:error, %Ecto.Changeset{}} = Plans.update_plan(plan, %{percentage: 150, last_synced_at: ~U[2022-01-01 00:00:00Z]})
+
+      assert {:error, %Ecto.Changeset{}} =
+               Plans.update_plan(plan, %{
+                 percentage: 150,
+                 last_synced_at: ~U[2022-01-01 00:00:00Z]
+               })
+
       assert {:error, %Ecto.Changeset{}} = Plans.update_plan(plan, %{percentage: 0})
       assert {:error, %Ecto.Changeset{}} = Plans.update_plan(plan, %{percentage: -50})
     end
@@ -37,10 +43,18 @@ defmodule SpendSync.PlansTest do
     end
 
     test "create_bank_connection/2 with valid data creates a bank_connection" do
-      valid_attrs = %{access_token: "some access_token", expires_at: ~U[2023-04-01 15:51:00Z], provider: "some provider", refresh_token: "some refresh_token"}
+      valid_attrs = %{
+        access_token: "some access_token",
+        expires_at: ~U[2023-04-01 15:51:00Z],
+        provider: "some provider",
+        refresh_token: "some refresh_token"
+      }
+
       user = insert(:user)
 
-      assert {:ok, %BankConnection{} = bank_connection} = Plans.create_bank_connection(user, valid_attrs)
+      assert {:ok, %BankConnection{} = bank_connection} =
+               Plans.create_bank_connection(user, valid_attrs)
+
       assert bank_connection.access_token == "some access_token"
       assert bank_connection.expires_at == ~U[2023-04-01 15:51:00Z]
       assert bank_connection.provider == "some provider"
@@ -54,9 +68,17 @@ defmodule SpendSync.PlansTest do
 
     test "update_bank_connection/2 with valid data updates the bank_connection" do
       bank_connection = insert(:bank_connection)
-      update_attrs = %{access_token: "some updated access_token", expires_at: ~U[2023-04-02 15:51:00Z], provider: "some updated provider", refresh_token: "some updated refresh_token"}
 
-      assert {:ok, %BankConnection{} = bank_connection} = Plans.update_bank_connection(bank_connection, update_attrs)
+      update_attrs = %{
+        access_token: "some updated access_token",
+        expires_at: ~U[2023-04-02 15:51:00Z],
+        provider: "some updated provider",
+        refresh_token: "some updated refresh_token"
+      }
+
+      assert {:ok, %BankConnection{} = bank_connection} =
+               Plans.update_bank_connection(bank_connection, update_attrs)
+
       assert bank_connection.access_token == "some updated access_token"
       assert bank_connection.expires_at == ~U[2023-04-02 15:51:00Z]
       assert bank_connection.provider == "some updated provider"
@@ -65,11 +87,15 @@ defmodule SpendSync.PlansTest do
 
     test "update_bank_connection/2 with invalid data returns error changeset" do
       bank_connection = insert(:bank_connection)
-      assert {:error, %Ecto.Changeset{}} = Plans.update_bank_connection(bank_connection, @invalid_attrs)
+
+      assert {:error, %Ecto.Changeset{}} =
+               Plans.update_bank_connection(bank_connection, @invalid_attrs)
+
       assert bank_connection == Plans.get_bank_connection!(bank_connection.id)
     end
 
-    @tag :skip # TODO
+    # TODO
+    @tag :skip
     test "delete_bank_connection/1 deletes the bank_connection" do
       bank_connection = insert(:bank_connection)
       assert {:ok, %BankConnection{}} = Plans.delete_bank_connection(bank_connection)

@@ -3,9 +3,10 @@ defmodule SpendSync.Encrypted.Vault do
 
   @impl GenServer
   def init(config) do
-    config = Keyword.put(config, :ciphers, [
-      default: {Cloak.Ciphers.AES.GCM, tag: "AES.GCM.V1", key: decode_env!("CLOAK_KEY")}
-    ])
+    config =
+      Keyword.put(config, :ciphers,
+        default: {Cloak.Ciphers.AES.GCM, tag: "AES.GCM.V1", key: decode_env!("CLOAK_KEY")}
+      )
 
     {:ok, config}
   end

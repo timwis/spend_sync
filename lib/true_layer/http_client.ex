@@ -31,10 +31,14 @@ defmodule TrueLayer.HttpClient do
     headers = []
 
     access_token = Keyword.get(opts, :access_token)
-    headers = if access_token, do: [{"Authorization", "Bearer #{access_token}"} | headers], else: headers
+
+    headers =
+      if access_token, do: [{"Authorization", "Bearer #{access_token}"} | headers], else: headers
 
     idempotency_key = Keyword.get(opts, :idempotency_key)
-    headers = if idempotency_key, do: [{"Idempotency-Key", idempotency_key} | headers], else: headers
+
+    headers =
+      if idempotency_key, do: [{"Idempotency-Key", idempotency_key} | headers], else: headers
 
     headers
   end
@@ -48,8 +52,7 @@ defmodule TrueLayer.HttpClient do
       |> Map.new()
 
     with {:ok, response} <- Tesla.post(client(subdomain: "auth"), "/connect/token", request_body),
-      %Env{status: 200, body: %{"expires_in" => _} = response_body} <- response
-    do
+         %Env{status: 200, body: %{"expires_in" => _} = response_body} <- response do
       {:ok, AccessToken.new(response_body)}
     else
       %Env{status: 400, body: %{"error" => reason}} -> {:error, reason}
@@ -93,14 +96,14 @@ defmodule TrueLayer.HttpClient do
     ]
 
     with {:ok, response} <- Tesla.post(client(opts), "/payments", request_body),
-      %Env{status: 200, body: response_body} = response
-    do
+         %Env{status: 200, body: response_body} = response do
       {:ok, response_body}
     end
   end
 
   defp generate_client_credentials_token(scope) do
     url = "/connect/token"
+
     request_body =
       @config
       |> Keyword.take([:client_id, :client_secret])
@@ -109,8 +112,7 @@ defmodule TrueLayer.HttpClient do
       |> Map.new()
 
     with {:ok, response} <- Tesla.post(client(subdomain: "auth"), url, request_body),
-      %Env{status: 200, body: response_body} <- response
-    do
+         %Env{status: 200, body: response_body} <- response do
       {:ok, AccessToken.new(response_body)}
     else
       %Env{status: 400..500, body: %{"error" => reason}} -> {:error, reason}

@@ -14,12 +14,18 @@ defmodule TrueLayer.HttpClientTest do
         case path(env.url) do
           "/connect/token" ->
             json(%{"access_token" => "test_access_token", "expires_in" => 3600})
+
           "/payments" ->
             body = Jason.decode!(env.body)
 
-            assert Tesla.get_header(env, "Idempotency-Key") != nil, "expected presence of Idempotency-Key header"
-            assert Tesla.get_header(env, "Tl-Signature") != nil, "expected presence of Tl-Signature header"
-            assert body["payment_method"]["mandate_id"] == mandate.external_id, "expected mandate_id to match mandate's external_id"
+            assert Tesla.get_header(env, "Idempotency-Key") != nil,
+                   "expected presence of Idempotency-Key header"
+
+            assert Tesla.get_header(env, "Tl-Signature") != nil,
+                   "expected presence of Tl-Signature header"
+
+            assert body["payment_method"]["mandate_id"] == mandate.external_id,
+                   "expected mandate_id to match mandate's external_id"
 
             {200, %{}, %{}}
         end

@@ -8,7 +8,9 @@ defmodule TrueLayer.StubClient do
     token = %AccessToken{
       access_token: "stub_access_token",
       expires_at: DateTime.add(DateTime.utc_now(), 1, :day),
-      refresh_token: refresh_token}
+      refresh_token: refresh_token
+    }
+
     {:ok, token}
   end
 
@@ -16,8 +18,9 @@ defmodule TrueLayer.StubClient do
     transactions = [
       Transaction.new(%{"amount" => -100.0, "currency" => "GBP"}),
       Transaction.new(%{"amount" => -12.34, "currency" => "GBP"}),
-      Transaction.new(%{"amount" => 50.0, "currency" => "GBP"}),
+      Transaction.new(%{"amount" => 50.0, "currency" => "GBP"})
     ]
+
     {:ok, transactions}
   end
 

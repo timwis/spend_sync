@@ -3,12 +3,14 @@ defmodule SpendSync.Factory do
 
   alias SpendSync.Sync.TransferLog
   alias SpendSync.UserAccounts.User
+
   alias SpendSync.Plans.{
     BankAccount,
     BankConnection,
     Mandate,
     Plan
   }
+
   alias TrueLayer.Transaction
 
   def user_factory do
@@ -19,6 +21,7 @@ defmodule SpendSync.Factory do
 
   def bank_connection_factory do
     one_day_from_now = DateTime.add(DateTime.utc_now(), 1, :day)
+
     %BankConnection{
       user: build(:user),
       provider: "true_layer",
@@ -46,6 +49,7 @@ defmodule SpendSync.Factory do
 
   def plan_factory do
     one_day_ago = DateTime.add(DateTime.utc_now(), -1, :day)
+
     %Plan{
       user: build(:user),
       last_synced_at: one_day_ago,

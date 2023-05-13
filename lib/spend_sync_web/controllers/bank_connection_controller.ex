@@ -17,6 +17,7 @@ defmodule SpendSyncWeb.BankConnectionController do
 
   def create(conn, %{"bank_connection" => bank_connection_params}) do
     user = UserAccounts.get_user!(bank_connection_params["user_id"])
+
     case Plans.create_bank_connection(user, bank_connection_params) do
       {:ok, bank_connection} ->
         conn
