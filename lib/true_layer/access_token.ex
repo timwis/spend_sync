@@ -34,7 +34,6 @@ defmodule TrueLayer.AccessToken do
     bank_connection
     |> new()
     |> expired?()
-    true
   end
 
   defp get_expires_at(expires_in) do
