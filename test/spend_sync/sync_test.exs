@@ -17,6 +17,7 @@ defmodule SpendSync.SyncTest do
   # - [ ] updates last_synced_at if :ok or :noop
   # - [x] creates transfer log record
   # - [ ] supports multiple currencies in transactions
+  # - [x] transfers specified percentage from plan
 
   setup do
     Mox.stub_with(MockTrueLayer, TrueLayer.StubClient)
@@ -87,6 +88,20 @@ defmodule SpendSync.SyncTest do
 
       assert length(transfer_logs) == 1
       assert Money.equals?(List.first(transfer_logs).amount, Money.parse!(100, :GBP))
+    end
+
+    test "transfers specified percentage from plan" do
+      plan = insert(:plan, percentage: 50)
+      transactions = [Transaction.new(%{"amount" => -100.0, "currency" => "GBP"})]
+
+      MockTrueLayer
+      |> expect(:get_card_transactions, fn _bc, _acc, _since -> {:ok, transactions} end)
+      |> expect(:create_payment_on_mandate, fn mandate_id, amount ->
+        assert Money.equals?(amount, Money.parse!(50, :GBP))
+        StubClient.create_payment_on_mandate(mandate_id, amount)
+      end)
+
+      Sync.perform_sync(plan)
     end
   end
 

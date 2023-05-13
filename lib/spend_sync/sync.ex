@@ -13,16 +13,13 @@ defmodule SpendSync.Sync do
   alias SpendSync.Plans.BankAccount
   alias SpendSync.Sync.TransferLog
 
-  def perform_sync(%Plan{
-        monitor_account: monitor_account,
-        mandate: mandate,
-        last_synced_at: last_synced_at
-      } = plan) do
-    with {:ok, transactions} <- get_transactions(monitor_account, last_synced_at),
+  def perform_sync(%Plan{} = plan) do
+    with {:ok, transactions} <- get_transactions(plan.monitor_account, plan.last_synced_at),
          sum <- sum_transactions(transactions),
          :ok <- should_transfer?(sum),
          positive_sum <- Money.abs(sum),
-         {:ok, %{"id" => payment_id}} <- transfer_funds(positive_sum, mandate)
+         amount_to_transfer <- percent_of(positive_sum, plan.percentage),
+         {:ok, %{"id" => payment_id}} <- transfer_funds(amount_to_transfer, plan.mandate)
     do
       {:ok, _plan} = Plans.update_plan(plan, %{last_synced_at: DateTime.utc_now()})
       create_transfer_log(plan, %{external_id: payment_id, amount: positive_sum, status: "authorizing"})
@@ -35,6 +32,10 @@ defmodule SpendSync.Sync do
 
   defp should_transfer?(%Money{} = amount) do
     if Money.negative?(amount), do: :ok, else: {:error, :non_negative}
+  end
+
+  defp percent_of(%Money{} = amount, percentage) do
+    Money.multiply(amount, percentage / 100)
   end
 
   defp get_transactions(%BankAccount{} = bank_account, nil) do

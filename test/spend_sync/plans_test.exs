@@ -6,19 +6,24 @@ defmodule SpendSync.PlansTest do
   alias SpendSync.Plans
   alias SpendSync.Plans.BankConnection
 
-  describe "list_plans/1" do
-    test "happy path" do
+  describe "plans" do
+    test "list_plans/1 returns plans" do
       insert(:plan, %{})
       now = DateTime.utc_now()
       one_day_ago = DateTime.add(now, -1, :day)
       plans = Plans.list_plans(one_day_ago)
       assert length(plans) == 1
     end
+
+    test "update_plan/1 with invalid percentage returns error changeset" do
+      plan = insert(:plan)
+      assert {:error, %Ecto.Changeset{}} = Plans.update_plan(plan, %{percentage: 150, last_synced_at: ~U[2022-01-01 00:00:00Z]})
+      assert {:error, %Ecto.Changeset{}} = Plans.update_plan(plan, %{percentage: 0})
+      assert {:error, %Ecto.Changeset{}} = Plans.update_plan(plan, %{percentage: -50})
+    end
   end
 
   describe "bank_connections" do
-    import SpendSync.PlansFixtures
-
     @invalid_attrs %{access_token: nil, expires_at: nil, provider: nil, refresh_token: nil}
 
     test "list_bank_connections/0 returns all bank_connections" do
@@ -66,7 +71,7 @@ defmodule SpendSync.PlansTest do
 
     @tag :skip # TODO
     test "delete_bank_connection/1 deletes the bank_connection" do
-      bank_connection = bank_connection_fixture()
+      bank_connection = insert(:bank_connection)
       assert {:ok, %BankConnection{}} = Plans.delete_bank_connection(bank_connection)
       assert_raise Ecto.NoResultsError, fn -> Plans.get_bank_connection!(bank_connection.id) end
     end
