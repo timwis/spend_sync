@@ -79,9 +79,9 @@ config :phoenix, :plug_init_mode, :runtime
 config :swoosh, :api_client, false
 
 config :spend_sync, TrueLayer,
-  client_id: System.get_env("TRUE_LAYER_CLIENT_ID"),
-  client_secret: System.get_env("TRUE_LAYER_CLIENT_SECRET"),
-  redirect_uri: "http://localhost:4000",
-  key_id: System.get_env("TRUE_LAYER_SIGNING_KEY_ID"),
-  private_key: Base.decode64!(System.get_env("TRUE_LAYER_SIGNING_PRIVATE_KEY")),
-  public_key: Base.decode64!(System.get_env("TRUE_LAYER_SIGNING_PUBLIC_KEY"))
+  domain: "truelayer-sandbox.com",
+  client_id: "test_client_id",
+  client_secret: "test_client_secret",
+  key_id: "test_key_id",
+  private_key: File.read!("test/support/test_keys/ec512-private.pem"),
+  public_key: File.read!("test/support/test_keys/ec512-public.pem")

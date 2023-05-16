@@ -20,6 +20,13 @@ if System.get_env("PHX_SERVER") do
   config :spend_sync, SpendSyncWeb.Endpoint, server: true
 end
 
+config :spend_sync, TrueLayer,
+  client_id: System.get_env("TRUE_LAYER_CLIENT_ID"),
+  client_secret: System.get_env("TRUE_LAYER_CLIENT_SECRET"),
+  key_id: System.get_env("TRUE_LAYER_SIGNING_KEY_ID"),
+  private_key: Base.decode64!(System.get_env("TRUE_LAYER_SIGNING_PRIVATE_KEY")),
+  public_key: Base.decode64!(System.get_env("TRUE_LAYER_SIGNING_PUBLIC_KEY"))
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||
