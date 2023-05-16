@@ -39,5 +39,11 @@ config :spend_sync, TrueLayer,
   client_secret: "test_client_secret",
   redirect_uri: "http://localhost:4000",
   key_id: "test_key_id",
-  private_key: "test/support/test_keys/ec512-private.pem",
-  public_key: "test/support/test_keys/ec512-public.pem"
+  private_key:
+    Base.decode64!(
+      "LS0tLS1CRUdJTiBFQyBQUklWQVRFIEtFWS0tLS0tCk1JSGNBZ0VCQkVJQk1KbVJmVS9uTXpPbkJuQTZ6WGdkZnBGNnVXZll2T0JDTTRsVW94RkRTRlM2bnFPMytYK1IKNDJHSjhPekt6THI5K0lxMjM4Q0wrMkJ4dzE0ZjNqcWlUdENnQndZRks0RUVBQ09oZ1lrRGdZWUFCQUNndTViaQpjV3FoUzVIeDNzVld4U2dqcmFXSnRoMUNWWWEwdEsyZXAyNTB0ajNadERTdHJsNWtCdVM2ZXNaTkgzN0QyYXZpCmpZUzNKdnFrTHRnSGI3YmRZd0Y5WEk1QmpJcGJZcEQ2NUYrUGFzTGlRM1hCRTJrN0kvcE1oVC9JN0JmVnVWd0EKZDJlTFFZa0xYTzlnMEp5V0hpc2dGZjArcW1VN1JTaGEvazZlSXJ2byt3PT0KLS0tLS1FTkQgRUMgUFJJVkFURSBLRVktLS0tLQo="
+    ),
+  public_key:
+    Base.decode64!(
+      "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlHYk1CQUdCeXFHU000OUFnRUdCU3VCQkFBakE0R0dBQVFBb0x1VzRuRnFvVXVSOGQ3RlZzVW9JNjJsaWJZZApRbFdHdExTdG5xZHVkTFk5MmJRMHJhNWVaQWJrdW5yR1RSOSt3OW1yNG8yRXR5YjZwQzdZQjIrMjNXTUJmVnlPClFZeUtXMktRK3VSZmoyckM0a04xd1JOcE95UDZUSVUveU93WDFibGNBSGRuaTBHSkMxenZZTkNjbGg0cklCWDkKUHFwbE8wVW9XdjVPbmlLNzZQcz0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg=="
+    )

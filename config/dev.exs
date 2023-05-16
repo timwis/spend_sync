@@ -81,4 +81,7 @@ config :swoosh, :api_client, false
 config :spend_sync, TrueLayer,
   client_id: System.get_env("TRUE_LAYER_CLIENT_ID"),
   client_secret: System.get_env("TRUE_LAYER_CLIENT_SECRET"),
-  redirect_uri: "http://localhost:4000"
+  redirect_uri: "http://localhost:4000",
+  key_id: System.get_env("TRUE_LAYER_SIGNING_KEY_ID"),
+  private_key: Base.decode64!(System.get_env("TRUE_LAYER_SIGNING_PRIVATE_KEY")),
+  public_key: Base.decode64!(System.get_env("TRUE_LAYER_SIGNING_PUBLIC_KEY"))

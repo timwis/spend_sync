@@ -17,7 +17,7 @@ defmodule TrueLayer.RequestSigning do
     jws_payload = build_jws_payload(request)
 
     [jws_header_b64, _jws_payload_b64, jws_signature] =
-      JOSE.JWK.from_pem_file(private_key)
+      JOSE.JWK.from_pem(private_key)
       |> JOSE.JWS.sign(jws_payload, jws_header)
       |> JOSE.JWS.compact()
       |> elem(1)
@@ -29,7 +29,7 @@ defmodule TrueLayer.RequestSigning do
   def verify(%Request{} = request, opts \\ []) do
     config = Keyword.merge(@config, opts)
     public_key = Keyword.fetch!(config, :public_key)
-    jwk = JOSE.JWK.from_pem_file(public_key)
+    jwk = JOSE.JWK.from_pem(public_key)
 
     jws_payload_b64 =
       request

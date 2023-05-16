@@ -7,8 +7,6 @@ defmodule TrueLayer.RequestSigningTest do
   alias TrueLayer.RequestSigning.SigningMiddleware
 
   test "adds tl-signature header" do
-    options = [key_id: "test_key", private_key: "test/support/test_keys/ec512-private.pem"]
-
     request = %Env{
       method: :post,
       url: "https://example.com/mandates",
@@ -16,18 +14,12 @@ defmodule TrueLayer.RequestSigningTest do
       headers: [{"Idempotency-Key", "123"}]
     }
 
-    assert {:ok, env} = SigningMiddleware.call(request, [], options)
+    assert {:ok, env} = SigningMiddleware.call(request, [], [])
     tl_signature = Tesla.get_header(env, "tl-signature")
     assert tl_signature != nil
   end
 
   test "generated signature verifies" do
-    options = [
-      key_id: "test_key",
-      private_key: "test/support/test_keys/ec512-private.pem",
-      public_key: "test/support/test_keys/ec512-public.pem"
-    ]
-
     request = %Request{
       method: :post,
       path: "/mandates",
@@ -35,10 +27,10 @@ defmodule TrueLayer.RequestSigningTest do
       headers: [{"Idempotency-Key", "123"}]
     }
 
-    assert {:ok, tl_signature} = RequestSigning.sign(request, options)
+    assert {:ok, tl_signature} = RequestSigning.sign(request)
 
     signed_request = put_header(request, "tl-signature", tl_signature)
-    assert :ok = RequestSigning.verify(signed_request, options)
+    assert :ok = RequestSigning.verify(signed_request)
   end
 
   # test "verifier fails on invalid signature" do
