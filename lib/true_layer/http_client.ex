@@ -8,40 +8,32 @@ defmodule TrueLayer.HttpClient do
   alias TrueLayer.Transaction
   alias TrueLayer.RequestSigning.SigningMiddleware
 
-  # def client(subdomain \\ "api", access_token \\ nil) do
   def client(opts \\ []) do
-    test_env? = Application.get_env(:spend_sync, :env) == :test
+    config = Keyword.merge(@config, opts)
+    should_sign? = Keyword.has_key?(config, :sign_request)
 
     [
-      {Tesla.Middleware.BaseUrl, get_base_url(opts)},
-      {Tesla.Middleware.Headers, get_headers(opts)},
+      {Tesla.Middleware.BaseUrl, get_base_url(config)},
+      {Tesla.Middleware.Headers, get_headers(config)},
       Tesla.Middleware.JSON
     ]
-    |> append_if(test_env?, Tesla.Middleware.KeepRequest)
-    |> append_if(Keyword.has_key?(opts, :sign_request), SigningMiddleware)
+    |> append_if(should_sign?, SigningMiddleware)
     |> Tesla.client()
   end
 
   defp get_base_url(opts) do
     subdomain = Keyword.get(opts, :subdomain, "api")
-    domain = "truelayer-sandbox.com"
+    domain = Keyword.get(opts, :domain, "truelayer-sandbox.com")
     "https://#{subdomain}.#{domain}"
   end
 
   defp get_headers(opts) do
-    headers = []
-
     access_token = Keyword.get(opts, :access_token)
-
-    headers =
-      if access_token, do: [{"Authorization", "Bearer #{access_token}"} | headers], else: headers
-
     idempotency_key = Keyword.get(opts, :idempotency_key)
 
-    headers =
-      if idempotency_key, do: [{"idempotency-key", idempotency_key} | headers], else: headers
-
-    headers
+    []
+    |> append_if(access_token, {"Authorization", "Bearer #{access_token}"})
+    |> append_if(idempotency_key, {"idempotency-key", idempotency_key})
   end
 
   def renew_token(refresh_token) do
@@ -64,17 +56,13 @@ defmodule TrueLayer.HttpClient do
   def get_card_transactions(%BankConnection{access_token: access_token}, account_id, since) do
     query = [from: DateTime.to_iso8601(since), to: DateTime.to_iso8601(DateTime.utc_now())]
     url = "/data/v1/cards/#{account_id}/transactions"
+    opts = [subdomain: "api", access_token: access_token]
 
-    # %Env{body: %{"results" => transactions}} = Tesla.get!(client("api", access_token), url, query: query)
-    # case Tesla.get(client("api", access_token), url, query: query) do
-    #   {:ok, %Env{status: 200} = response} ->
-    #     {:ok, Enum.map(response.body["results"], &Transaction.new/1)}
-    #   other -> other
-    # end
-    %Env{status: 200, body: response_body} =
-      Tesla.get!(client(subdomain: "api", access_token: access_token), url, query: query)
-
-    {:ok, Enum.map(response_body["results"], &Transaction.new/1)}
+    with {:ok, response} <- Tesla.get(client(opts), url, query: query),
+         %Env{status: 200, body: response_body} <- response,
+         transactions = Enum.map(response_body["results"], &Transaction.new/1) do
+      {:ok, transactions}
+    end
   end
 
   def create_payment_on_mandate(mandate_id, %Money{} = amount) do
