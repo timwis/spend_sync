@@ -19,6 +19,6 @@ defmodule SpendSync.Plans.BankAccount do
   def changeset(bank_account, attrs) do
     bank_account
     |> cast(attrs, [:account_type, :external_account_id, :display_name])
-    |> validate_required([:account_type, :external_account_id, :display_name, :bank_connection_id])
+    |> validate_required([:account_type, :external_account_id, :display_name])
   end
 end

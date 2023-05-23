@@ -22,6 +22,5 @@ defmodule SpendSync.Plans.Plan do
     plan
     |> cast(attrs, [:last_synced_at, :percentage])
     |> validate_number(:percentage, greater_than: 0, less_than_or_equal_to: 100)
-    |> validate_required([:last_synced_at, :user_id, :monitor_account_id, :mandate_id])
   end
 end
