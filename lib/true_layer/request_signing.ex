@@ -1,7 +1,6 @@
 defmodule TrueLayer.RequestSigning do
   @alg "ES512"
   @tl_version "2"
-  @config Application.compile_env(:spend_sync, TrueLayer, [])
 
   defmodule Request do
     @enforce_keys [:method, :path, :headers, :body]
@@ -9,7 +8,7 @@ defmodule TrueLayer.RequestSigning do
   end
 
   def sign(%Request{} = request, opts \\ []) do
-    config = Keyword.merge(@config, opts)
+    config = get_config(opts)
     key_id = Keyword.fetch!(config, :key_id)
     private_key = Keyword.fetch!(config, :private_key)
 
@@ -27,7 +26,7 @@ defmodule TrueLayer.RequestSigning do
   end
 
   def verify(%Request{} = request, opts \\ []) do
-    config = Keyword.merge(@config, opts)
+    config = get_config(opts)
     public_key = Keyword.fetch!(config, :public_key)
     jwk = JOSE.JWK.from_pem(public_key)
 
@@ -49,9 +48,14 @@ defmodule TrueLayer.RequestSigning do
       {false, _, _} ->
         {:error, :invalid_signature}
 
-      [_tl_sig_without_separator] ->
+      [_tl_signature_without_separator] ->
         {:error, :invalid_signature}
     end
+  end
+
+  defp get_config(overrides \\ []) do
+    Application.fetch_env!(:spend_sync, TrueLayer)
+    |> Keyword.merge(overrides)
   end
 
   defp build_jws_header(%Request{} = request, key_id) do

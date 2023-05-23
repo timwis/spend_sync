@@ -21,6 +21,7 @@ if System.get_env("PHX_SERVER") do
 end
 
 config :spend_sync, TrueLayer,
+  domain: System.get_env("TRUE_LAYER_DOMAIN"),
   client_id: System.get_env("TRUE_LAYER_CLIENT_ID"),
   client_secret: System.get_env("TRUE_LAYER_CLIENT_SECRET"),
   key_id: System.get_env("TRUE_LAYER_SIGNING_KEY_ID"),

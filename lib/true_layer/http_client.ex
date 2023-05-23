@@ -1,6 +1,5 @@
 defmodule TrueLayer.HttpClient do
   @behaviour TrueLayer
-  @config Application.compile_env(:spend_sync, TrueLayer, [])
 
   alias Tesla.Env
   alias SpendSync.Plans.BankConnection
@@ -9,7 +8,7 @@ defmodule TrueLayer.HttpClient do
   alias TrueLayer.RequestSigning.SigningMiddleware
 
   def client(opts \\ []) do
-    config = Keyword.merge(@config, opts)
+    config = get_config(opts)
     should_sign? = Keyword.has_key?(config, :sign_request)
 
     [
@@ -19,6 +18,11 @@ defmodule TrueLayer.HttpClient do
     ]
     |> append_if(should_sign?, SigningMiddleware)
     |> Tesla.client()
+  end
+
+  defp get_config(overrides \\ []) do
+    Application.fetch_env!(:spend_sync, TrueLayer)
+    |> Keyword.merge(overrides)
   end
 
   defp get_base_url(opts) do
@@ -38,7 +42,7 @@ defmodule TrueLayer.HttpClient do
 
   def renew_token(refresh_token) do
     request_body =
-      @config
+      get_config()
       |> Keyword.take([:client_id, :client_secret])
       |> Keyword.put(:grant_type, "refresh_token")
       |> Keyword.put(:refresh_token, refresh_token)
@@ -94,7 +98,7 @@ defmodule TrueLayer.HttpClient do
     url = "/connect/token"
 
     request_body =
-      @config
+      get_config()
       |> Keyword.take([:client_id, :client_secret])
       |> Keyword.put(:grant_type, "client_credentials")
       |> Keyword.put(:scope, scope)
