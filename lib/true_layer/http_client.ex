@@ -76,7 +76,7 @@ defmodule TrueLayer.HttpClient do
       amount_in_minor: amount.amount,
       currency: amount.currency,
       payment_method: %{
-        type: "method",
+        type: "mandate",
         mandate_id: mandate_id
       }
     }
