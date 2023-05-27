@@ -69,7 +69,7 @@ defmodule TrueLayer.HttpClientTest do
             assert body["payment_method"]["mandate_id"] == mandate.external_id,
                    "expected mandate_id to match mandate's external_id"
 
-            {200, %{}, %{}}
+            {201, %{}, %{"status" => "authorized"}}
         end
       end)
 

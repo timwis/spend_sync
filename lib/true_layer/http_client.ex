@@ -89,8 +89,11 @@ defmodule TrueLayer.HttpClient do
     ]
 
     with {:ok, response} <- Tesla.post(client(opts), "/payments", request_body),
-         %Env{status: 200, body: response_body} = response do
+         %Env{status: 201, body: %{"status" => "authorized"} = response_body} = response do
       {:ok, response_body}
+    else
+      %Env{status: 201, body: %{"status" => "failed"} = response_body} ->
+        {:error, response_body}
     end
   end
 
