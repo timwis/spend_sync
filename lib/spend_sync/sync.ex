@@ -30,6 +30,9 @@ defmodule SpendSync.Sync do
       {:error, :non_negative} ->
         {:ok, _plan} = Plans.update_plan(plan, %{last_synced_at: DateTime.utc_now()})
         {:ok, :non_negative}
+
+      {:error, _other_reason} = error ->
+        error
     end
   end
 
