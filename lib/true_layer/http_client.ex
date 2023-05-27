@@ -14,7 +14,8 @@ defmodule TrueLayer.HttpClient do
     [
       {Tesla.Middleware.BaseUrl, get_base_url(config)},
       {Tesla.Middleware.Headers, get_headers(config)},
-      Tesla.Middleware.JSON
+      Tesla.Middleware.JSON,
+      Tesla.Middleware.Logger
     ]
     |> append_if(should_sign?, SigningMiddleware)
     |> Tesla.client()
