@@ -41,3 +41,5 @@ config :spend_sync, TrueLayer,
   key_id: "test_key_id",
   private_key: File.read!("test/support/test_keys/ec512-private.pem"),
   public_key: File.read!("test/support/test_keys/ec512-public.pem")
+
+config :spend_sync, Oban, testing: :inline

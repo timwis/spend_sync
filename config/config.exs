@@ -69,3 +69,8 @@ config :spend_sync, env: config_env()
 
 config :money,
   default_currency: :GBP
+
+config :spend_sync, Oban,
+  repo: SpendSync.Repo,
+  plugins: [{Oban.Plugins.Pruner, max_age: 60 * 60 * 24 * 7}],
+  queues: [default: 10]

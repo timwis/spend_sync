@@ -57,7 +57,8 @@ defmodule SpendSync.MixProject do
       {:money, "~> 1.12"},
       {:mox, "~> 1.0", only: :test},
       {:jose, "~> 1.11"},
-      {:uuid, "~> 1.1"}
+      {:uuid, "~> 1.1"},
+      {:oban, "~> 2.14"}
     ]
   end
 

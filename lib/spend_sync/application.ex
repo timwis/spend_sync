@@ -12,6 +12,8 @@ defmodule SpendSync.Application do
       SpendSyncWeb.Telemetry,
       # Start the Ecto repository
       SpendSync.Repo,
+      # Start Oban scheduler
+      {Oban, Application.fetch_env!(:spend_sync, Oban)},
       # Start the PubSub system
       {Phoenix.PubSub, name: SpendSync.PubSub},
       # Start Finch
