@@ -1,8 +1,0 @@
-<.header>
-  Edit Bank connection <%= @bank_connection.id %>
-  <:subtitle>Use this form to manage bank_connection records in your database.</:subtitle>
-</.header>
-
-<.bank_connection_form changeset={@changeset} action={~p"/bank_connections/#{@bank_connection}"} />
-
-<.back navigate={~p"/bank_connections"}>Back to bank_connections</.back>
