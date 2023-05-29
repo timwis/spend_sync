@@ -114,9 +114,12 @@ defmodule SpendSync.SyncTest do
 
       Sync.perform_sync(plan)
       transfer_logs = TransferLogs.list_transfer_logs()
+      transfer_log = List.first(transfer_logs)
 
       assert length(transfer_logs) == 1
-      assert Money.equals?(List.first(transfer_logs).amount, Money.parse!(100, :GBP))
+      assert Money.equals?(transfer_log.amount, Money.parse!(100, :GBP))
+      assert length(transfer_log.metadata["transactions"]) == 1
+      assert List.first(transfer_log.metadata["transactions"])["amount"]["amount"] == -10000
     end
 
     test "transfers specified percentage from plan" do

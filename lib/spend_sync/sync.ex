@@ -24,6 +24,7 @@ defmodule SpendSync.Sync do
       TransferLogs.create_transfer_log(plan, %{
         external_id: payment_id,
         amount: positive_sum,
+        metadata: %{"transactions" => transactions},
         status: "authorizing"
       })
     else

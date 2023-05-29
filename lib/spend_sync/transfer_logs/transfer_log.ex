@@ -6,6 +6,7 @@ defmodule SpendSync.TransferLogs.TransferLog do
 
   schema "transfer_logs" do
     field :amount, Money.Ecto.Composite.Type
+    field :metadata, :map
     field :external_id, Ecto.UUID
     field :status, :string
 
@@ -17,7 +18,7 @@ defmodule SpendSync.TransferLogs.TransferLog do
   @doc false
   def changeset(transfer_log, attrs) do
     transfer_log
-    |> cast(attrs, [:external_id, :amount, :status])
+    |> cast(attrs, [:external_id, :amount, :metadata, :status])
     |> validate_required([:external_id, :amount, :status])
   end
 end
