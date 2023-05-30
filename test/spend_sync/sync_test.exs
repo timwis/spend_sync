@@ -112,7 +112,7 @@ defmodule SpendSync.SyncTest do
       MockTrueLayer
       |> expect(:get_card_transactions, fn _bc, _acc, _since -> {:ok, transactions} end)
 
-      Sync.perform_sync(plan)
+      {:ok, _transfer_log} = Sync.perform_sync(plan)
       transfer_logs = TransferLogs.list_transfer_logs()
       transfer_log = List.first(transfer_logs)
 
@@ -158,6 +158,45 @@ defmodule SpendSync.SyncTest do
       plan = Plans.get_plan!(plan.id)
 
       assert DateTime.to_date(plan.last_synced_at) == Date.utc_today()
+    end
+
+    test "does not transfer funds when status is simulation" do
+      plan = insert(:plan, status: :simulation)
+
+      MockTrueLayer
+      |> expect(:create_payment_on_mandate, 0, fn _, _ -> {:noop} end)
+
+      Sync.perform_sync(plan)
+      verify!()
+    end
+
+    test "creates transfer log when status is isimulation" do
+      plan = insert(:plan, status: :simulation)
+
+      Sync.perform_sync(plan)
+
+      transfer_logs = TransferLogs.list_transfer_logs()
+      assert length(transfer_logs) == 1
+
+      transfer_log = hd(transfer_logs)
+      assert transfer_log.status == "simulation"
+    end
+
+    @tag :skip
+    test "creates transfer log when spend is non-negative" do
+      plan = insert(:plan)
+      transactions = [Transaction.new(%{"amount" => 100.0, "currency" => "GBP"})]
+
+      MockTrueLayer
+      |> expect(:get_card_transactions, fn _bc, _acc, _since -> {:ok, transactions} end)
+
+      Sync.perform_sync(plan)
+
+      transfer_logs = TransferLogs.list_transfer_logs()
+      assert length(transfer_logs) == 1
+
+      transfer_log = hd(transfer_logs)
+      assert transfer_log.status == "simulation"
     end
   end
 end

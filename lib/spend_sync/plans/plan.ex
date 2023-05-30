@@ -9,6 +9,7 @@ defmodule SpendSync.Plans.Plan do
   schema "plans" do
     field :last_synced_at, :utc_datetime
     field :percentage, :integer, default: 100
+    field :status, Ecto.Enum, values: [:simulation, :live]
 
     belongs_to :user, User
     belongs_to :monitor_account, BankAccount
@@ -20,7 +21,7 @@ defmodule SpendSync.Plans.Plan do
   @doc false
   def changeset(plan, attrs) do
     plan
-    |> cast(attrs, [:last_synced_at, :percentage])
+    |> cast(attrs, [:last_synced_at, :percentage, :status])
     |> validate_number(:percentage, greater_than: 0, less_than_or_equal_to: 100)
   end
 end

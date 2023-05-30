@@ -53,6 +53,7 @@ defmodule SpendSync.Factory do
     %Plan{
       user: build(:user),
       last_synced_at: one_day_ago,
+      status: :live,
       monitor_account: build(:bank_account),
       mandate: build(:mandate)
     }
@@ -68,7 +69,7 @@ defmodule SpendSync.Factory do
       plan: build(:plan),
       amount: Money.new(4300),
       external_id: UUID.uuid4(),
-      status: "payment_authorized"
+      status: "authorized"
     }
   end
 end

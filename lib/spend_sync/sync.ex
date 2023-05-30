@@ -17,15 +17,25 @@ defmodule SpendSync.Sync do
          sum <- sum_transactions(transactions),
          :ok <- should_transfer?(sum),
          positive_sum <- Money.abs(sum),
-         amount_to_transfer <- percent_of(positive_sum, plan.percentage),
-         {:ok, %{"id" => payment_id}} <- transfer_funds(amount_to_transfer, plan.mandate) do
+         amount_to_transfer <- percent_of(positive_sum, plan.percentage) do
+      {:ok, payment} =
+        if plan.status == :live do
+          transfer_funds(amount_to_transfer, plan.mandate)
+        else
+          {:ok, %{"id" => UUID.uuid4(), "status" => "simulation"}}
+        end
+
       {:ok, _plan} = Plans.update_plan(plan, %{last_synced_at: DateTime.utc_now()})
 
       TransferLogs.create_transfer_log(plan, %{
-        external_id: payment_id,
-        amount: positive_sum,
-        metadata: %{"transactions" => transactions},
-        status: "authorizing"
+        external_id: payment["id"],
+        amount: amount_to_transfer,
+        status: payment["status"],
+        metadata: %{
+          "transactions" => transactions,
+          "raw_sum" => sum,
+          "since" => plan.last_synced_at
+        }
       })
     else
       {:error, :non_negative} ->
