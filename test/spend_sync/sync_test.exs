@@ -170,10 +170,10 @@ defmodule SpendSync.SyncTest do
       verify!()
     end
 
-    test "creates transfer log when status is isimulation" do
+    test "creates transfer log when status is simulation" do
       plan = insert(:plan, status: :simulation)
 
-      Sync.perform_sync(plan)
+      {:ok, _transfer_Log} = Sync.perform_sync(plan)
 
       transfer_logs = TransferLogs.list_transfer_logs()
       assert length(transfer_logs) == 1
@@ -182,7 +182,6 @@ defmodule SpendSync.SyncTest do
       assert transfer_log.status == "simulation"
     end
 
-    @tag :skip
     test "creates transfer log when spend is non-negative" do
       plan = insert(:plan)
       transactions = [Transaction.new(%{"amount" => 100.0, "currency" => "GBP"})]
@@ -190,13 +189,13 @@ defmodule SpendSync.SyncTest do
       MockTrueLayer
       |> expect(:get_card_transactions, fn _bc, _acc, _since -> {:ok, transactions} end)
 
-      Sync.perform_sync(plan)
+      {:ok, _transfer_Log} = Sync.perform_sync(plan)
 
       transfer_logs = TransferLogs.list_transfer_logs()
       assert length(transfer_logs) == 1
 
       transfer_log = hd(transfer_logs)
-      assert transfer_log.status == "simulation"
+      assert transfer_log.status == "zero"
     end
   end
 end

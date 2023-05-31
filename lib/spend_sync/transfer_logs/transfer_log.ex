@@ -19,6 +19,6 @@ defmodule SpendSync.TransferLogs.TransferLog do
   def changeset(transfer_log, attrs) do
     transfer_log
     |> cast(attrs, [:external_id, :amount, :metadata, :status])
-    |> validate_required([:external_id, :amount, :status])
+    |> validate_required([:amount, :status])
   end
 end

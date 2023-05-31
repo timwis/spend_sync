@@ -13,18 +13,12 @@ defmodule SpendSync.Sync do
   alias SpendSync.TransferLogs
 
   def perform_sync(%Plan{} = plan) do
-    with {:ok, transactions} <- get_transactions(plan.monitor_account, plan.last_synced_at),
-         sum <- sum_transactions(transactions),
-         :ok <- should_transfer?(sum),
-         positive_sum <- Money.abs(sum),
-         amount_to_transfer <- percent_of(positive_sum, plan.percentage) do
-      {:ok, payment} =
-        if plan.status == :live do
-          transfer_funds(amount_to_transfer, plan.mandate)
-        else
-          {:ok, %{"id" => UUID.uuid4(), "status" => "simulation"}}
-        end
+    since = plan.last_synced_at || one_day_ago()
 
+    with {:ok, transactions} = get_transactions(plan.monitor_account, since),
+         raw_sum <- sum_transactions(transactions),
+         amount_to_transfer <- calculate_amount_to_transfer(raw_sum, plan.percentage) do
+      {:ok, payment} = transfer_funds(amount_to_transfer, plan.mandate, plan.status)
       {:ok, _plan} = Plans.update_plan(plan, %{last_synced_at: DateTime.utc_now()})
 
       TransferLogs.create_transfer_log(plan, %{
@@ -33,45 +27,32 @@ defmodule SpendSync.Sync do
         status: payment["status"],
         metadata: %{
           "transactions" => transactions,
-          "raw_sum" => sum,
-          "since" => plan.last_synced_at
+          "raw_sum" => raw_sum,
+          "since" => since
         }
       })
-    else
-      {:error, :non_negative} ->
-        {:ok, _plan} = Plans.update_plan(plan, %{last_synced_at: DateTime.utc_now()})
-        {:ok, :non_negative}
-
-      {:error, _other_reason} = error ->
-        error
     end
   end
 
-  defp should_transfer?(%Money{} = amount) do
-    if Money.negative?(amount), do: :ok, else: {:error, :non_negative}
+  # raw_sum would be positive when, for example, refunds were greater than spend
+  defp calculate_amount_to_transfer(%Money{amount: amount}, _percentage) when amount > 0 do
+    Money.new(0)
   end
 
-  defp percent_of(%Money{} = amount, percentage) do
-    Money.multiply(amount, percentage / 100)
+  defp calculate_amount_to_transfer(%Money{} = raw_sum, percentage) do
+    raw_sum
+    |> Money.abs()
+    |> Money.multiply(percentage / 100)
   end
 
-  defp get_transactions(%BankAccount{} = bank_account, nil) do
-    get_transactions(bank_account, DateTime.add(DateTime.utc_now(), -1, :day))
+  defp one_day_ago() do
+    DateTime.add(DateTime.utc_now(), -1, :day)
   end
 
   defp get_transactions(
          %BankAccount{} = bank_account,
          %DateTime{} = since
        ) do
-    # {:ok, bank_connection} =
-    #   if AccessToken.expired?(bank_account.bank_connection) do
-    #     renew_connection(bank_account.bank_connection)
-    #   else
-    #     {:ok, bank_account.bank_connection}
-    #   end
-
-    # {:ok, TrueLayer.get_card_transactions(bank_connection, bank_account.external_account_id, since)}
-
     # TODO: Only renew if expired
     with {:ok, bank_connection} <- renew_connection(bank_account.bank_connection),
          {:ok, transactions} <-
@@ -96,7 +77,15 @@ defmodule SpendSync.Sync do
     Enum.reduce(transactions, Money.new(0), fn txn, acc -> Money.add(acc, txn.amount) end)
   end
 
-  defp transfer_funds(amount, mandate) do
-    TrueLayer.create_payment_on_mandate(mandate.external_id, amount)
+  defp transfer_funds(_amount, _mandate, :simulation) do
+    {:ok, %{"id" => nil, "status" => "simulation"}}
+  end
+
+  defp transfer_funds(%Money{amount: amount}, _mandate, :live) when amount == 0 do
+    {:ok, %{"id" => nil, "status" => "zero"}}
+  end
+
+  defp transfer_funds(%Money{} = amount_to_transfer, mandate, :live) do
+    TrueLayer.create_payment_on_mandate(mandate.external_id, amount_to_transfer)
   end
 end
