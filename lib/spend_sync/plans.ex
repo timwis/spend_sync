@@ -17,20 +17,14 @@ defmodule SpendSync.Plans do
 
   ## Examples
 
-      iex> list_plans(one_day_ago)
+      iex> list_plans()
       [%Plan{}, ...]
 
   """
-  def list_plans(since) do
-    query =
-      from plan in Plan,
-        join: monitor in assoc(plan, :monitor_account),
-        join: mandate in assoc(plan, :mandate),
-        where: plan.last_synced_at <= ^since,
-        or_where: is_nil(plan.last_synced_at),
-        preload: [:mandate, monitor_account: :bank_connection]
-
-    Repo.all(query)
+  def list_plans() do
+    Plan
+    |> Repo.all()
+    |> Repo.preload([:mandate, monitor_account: :bank_connection])
   end
 
   @doc """
