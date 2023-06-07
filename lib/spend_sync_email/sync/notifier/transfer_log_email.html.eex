@@ -1,0 +1,22 @@
+<h1>Your daily spend sync</h1>
+
+<dl>
+  <dt>Amount transferred</dt>
+  <dd><%= Money.to_string(@amount) %></dd>
+
+  <dt>Raw sum</dt>
+  <dd><%= @raw_sum %></dd>
+
+  <dt>Since</dt>
+  <dd><%= @since %></dd>
+
+  <dt>Status</dt>
+  <dd><%= @status %></dd>
+</dl>
+
+<h3>Transactions</h3>
+<ul>
+  <%= for txn <- @transactions do %>
+    <li><%= Money.to_string(txn.amount) %> @ <%= txn.timestamp %></li>
+  <% end %>
+</ul>

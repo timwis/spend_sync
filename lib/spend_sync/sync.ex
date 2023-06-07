@@ -11,6 +11,7 @@ defmodule SpendSync.Sync do
   alias SpendSync.Plans.BankConnection
   alias SpendSync.Plans.BankAccount
   alias SpendSync.TransferLogs
+  alias SpendSync.Sync.Notifier
 
   def perform_sync(%Plan{} = plan) do
     since = plan.last_synced_at || one_day_ago()
@@ -20,6 +21,14 @@ defmodule SpendSync.Sync do
          amount_to_transfer <- calculate_amount_to_transfer(raw_sum, plan.percentage) do
       {:ok, payment} = transfer_funds(amount_to_transfer, plan.mandate, plan.status)
       {:ok, _plan} = Plans.update_plan(plan, %{last_synced_at: DateTime.utc_now()})
+
+      Notifier.deliver_transfer_log_email(plan.user.email, %{
+        amount: amount_to_transfer,
+        status: payment["status"],
+        transactions: transactions,
+        raw_sum: raw_sum,
+        since: since
+      })
 
       TransferLogs.create_transfer_log(plan, %{
         external_id: payment["id"],

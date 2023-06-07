@@ -58,7 +58,8 @@ defmodule SpendSync.MixProject do
       {:mox, "~> 1.0", only: :test},
       {:jose, "~> 1.11"},
       {:uuid, "~> 1.1"},
-      {:oban, "~> 2.14"}
+      {:oban, "~> 2.14"},
+      {:phoenix_swoosh, "~> 1.0"}
     ]
   end
 
